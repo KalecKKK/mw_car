@@ -1,0 +1,5 @@
+// TODO add all to git submodule
+YDLidar-SDK
+ros-astra-camera
+tf2o-laser-odometry
+world-canvas-msgs

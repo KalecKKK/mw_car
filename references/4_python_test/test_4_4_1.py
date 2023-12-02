@@ -1,0 +1,15 @@
+#1、色彩空间转换
+import cv2
+BGR = cv2.imread('/home/mowen/4_python_test/test_4_3_pictures/3.jpg',cv2.IMREAD_COLOR)
+cv2.imshow('3.jpg',BGR)
+RGB = cv2.cvtColor(BGR, cv2.COLOR_BGR2RGB)
+cv2.imshow('RGB',RGB)
+GRAY = cv2.cvtColor(BGR, cv2.COLOR_BGR2GRAY)
+cv2.imshow('GRAY',GRAY)
+HSV = cv2.cvtColor(BGR, cv2.COLOR_BGR2HSV)
+cv2.imshow('HSV',HSV)
+YCrCb = cv2.cvtColor(BGR, cv2.COLOR_BGR2YCrCb)
+cv2.imshow('YCrCb',YCrCb)
+HLS = cv2.cvtColor(BGR, cv2.COLOR_BGR2HLS)
+cv2.imshow('HLS',HLS)
+cv2.waitKey(0)

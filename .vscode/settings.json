@@ -1,0 +1,5 @@
+{
+    "ros.distro": "humble",
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "C_Cpp.default.compileCommands": "ros_ws/build/compile_commands.json",
+}
