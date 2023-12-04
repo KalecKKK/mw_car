@@ -1,6 +1,0 @@
-[submodule "ros_ws/src/ydlidar_ros2"]
-	path = ros_ws/src/ydlidar_ros2
-	url = https://github.com/YDLIDAR/ydlidar_ros2.git
-[submodule "ros_ws/src/ros2_astra_camera"]
-	path = ros_ws/src/ros2_astra_camera
-	url = https://github.com/KavenYau/ros2_astra_camera.git
