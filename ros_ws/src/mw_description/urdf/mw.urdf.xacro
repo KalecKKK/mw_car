@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot name="mw_car" xmlns:xacro="http://wiki.ros.org/xacro">
 
-  <xacro:property name="ns" value="mw" />
+  <xacro:property name="ns" value="" />
 
   <link name="${ns}/base_footprint" />
 
