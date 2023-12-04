@@ -25,6 +25,7 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.actions import LifecycleNode
 from launch.launch_description_sources import AnyLaunchDescriptionSource
 
 
@@ -84,11 +85,30 @@ def generate_launch_description():
                 'launch/foxglove_bridge_launch.xml'))
     )
 
+    share_dir = get_package_share_directory('mw_description')
+    parameter_file = LaunchConfiguration('params_file')
+
+    params_declare = DeclareLaunchArgument('params_file',
+                                           default_value=os.path.join(
+                                               share_dir, 'config', 'ydlidar.yaml'),
+                                           description='FPath to the ROS2 parameters file to use.')
+    
+    lidar_node = LifecycleNode(package='ydlidar',
+                                executable='ydlidar_node',
+                                name='ydlidar_node',
+                                output='screen',
+                                emulate_tty=True,
+                                parameters=[parameter_file],
+                                namespace='/',
+                                )
+
     return LaunchDescription(
         declared_arguments
         + [
             joint_state_publisher_node,
             robot_state_publisher_node,
+            params_declare,
+            lidar_node,
             # rviz_node,
             foxglove_bridge,
         ]
