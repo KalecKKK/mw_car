@@ -16,12 +16,17 @@
 # Author: Dr. Denis
 #
 
+import os
+
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, RegisterEventHandler, TimerAction
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler, TimerAction, IncludeLaunchDescription
 from launch.event_handlers import OnProcessExit, OnProcessStart
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
-from launch_ros.actions import Node
+from launch_ros.actions import Node, LifecycleNode
 from launch_ros.substitutions import FindPackageShare
+from launch.launch_description_sources import AnyLaunchDescriptionSource
+
+from ament_index_python import get_package_share_directory
 
 
 def generate_launch_description():
@@ -53,14 +58,14 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "description_file",
-            default_value="mw_car.urdf.xacro",
+            default_value="mw.urdf.xacro",
             description="URDF/XACRO description file with the robot.",
         )
     )
     declared_arguments.append(
         DeclareLaunchArgument(
             "prefix",
-            default_value='""',
+            default_value='"mw"',
             description="Prefix of the joint names, useful for \
         multi-robot setup. If changed than also joint names in the controllers' configuration \
         have to be updated.",
@@ -69,7 +74,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "use_mock_hardware",
-            default_value="true",
+            default_value="false",
             description="Start robot with mock hardware mirroring command to its states.",
         )
     )
@@ -218,13 +223,47 @@ def generate_launch_description():
                 )
             )
         ]
+        
+    foxglove_bridge = IncludeLaunchDescription(
+        AnyLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('foxglove_bridge'),
+                'launch/foxglove_bridge_launch.xml'))
+    )
+
+    share_dir = get_package_share_directory('mw_description')
+    parameter_file = LaunchConfiguration('params_file')
+
+    params_declare = DeclareLaunchArgument('params_file',
+                                           default_value=os.path.join(
+                                               share_dir, 'config', 'ydlidar.yaml'),
+                                           description='FPath to the ROS2 parameters file to use.')
+    
+    lidar_node = LifecycleNode(
+        package='ydlidar',
+        executable='ydlidar_node',
+        name='ydlidar_node',
+        output='screen',
+        emulate_tty=True,
+        parameters=[parameter_file],
+        namespace='/',
+    )
+
+    newt_node = Node(
+        package="mw_bringup",
+        executable="newt.py",
+        output="both",
+    )
 
     return LaunchDescription(
         declared_arguments
         + [
             control_node,
             robot_state_pub_node,
-            rviz_node,
+            params_declare,
+            lidar_node,
+            # rviz_node,
+            foxglove_bridge,
             delay_joint_state_broadcaster_spawner_after_ros2_control_node,
         ]
         + delay_robot_controller_spawners_after_joint_state_broadcaster_spawner
