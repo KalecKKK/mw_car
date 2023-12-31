@@ -40,9 +40,17 @@ def generate_launch_description():
         it enables use of a custom description.",
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            'params_file',
+            default_value=os.path.join(
+                get_package_share_directory('mw_description'), 'config', 'ydlidar.yaml'),
+            description='FPath to the ROS2 parameters file to use.')
+    )
 
     # Initialize Arguments
     description_package = LaunchConfiguration("description_package")
+    parameter_file = LaunchConfiguration('params_file')
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -84,30 +92,21 @@ def generate_launch_description():
                 get_package_share_directory('foxglove_bridge'),
                 'launch/foxglove_bridge_launch.xml'))
     )
-
-    share_dir = get_package_share_directory('mw_description')
-    parameter_file = LaunchConfiguration('params_file')
-
-    params_declare = DeclareLaunchArgument('params_file',
-                                           default_value=os.path.join(
-                                               share_dir, 'config', 'ydlidar.yaml'),
-                                           description='FPath to the ROS2 parameters file to use.')
-    
-    lidar_node = LifecycleNode(package='ydlidar',
-                                executable='ydlidar_node',
-                                name='ydlidar_node',
-                                output='screen',
-                                emulate_tty=True,
-                                parameters=[parameter_file],
-                                namespace='/',
-                                )
+    lidar_node = LifecycleNode(
+        package='ydlidar',
+        executable='ydlidar_node',
+        name='ydlidar_node',
+        output='screen',
+        emulate_tty=True,
+        parameters=[parameter_file],
+        namespace='/',
+    )
 
     return LaunchDescription(
         declared_arguments
         + [
             joint_state_publisher_node,
             robot_state_publisher_node,
-            params_declare,
             lidar_node,
             # rviz_node,
             foxglove_bridge,

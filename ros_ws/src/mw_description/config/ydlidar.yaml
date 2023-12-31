@@ -1,7 +1,7 @@
 ydlidar_node:
   ros__parameters:
     port: /dev/ydlidar
-    frame_id: laser_link
+    frame_id: mw/laser_link
     ignore_array: ""
     baudrate: 115200
     samp_rate: 3
@@ -9,7 +9,7 @@ ydlidar_node:
     singleChannel: true
     auto_reconnect: true
     reversion: false
-    isToFLidar: true
+    isToFLidar: false
     angle_max: 170.0
     angle_min: 10.0
     max_range: 12.0
