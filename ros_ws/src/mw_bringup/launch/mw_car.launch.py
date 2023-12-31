@@ -94,6 +94,14 @@ def generate_launch_description():
             description="Robot controller to start.",
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            'ydlidar_params_file',
+            default_value=os.path.join(
+                get_package_share_directory('mw_description'), 'config', 'ydlidar.yaml'),
+            description='FPath to the ROS2 ydlidar parameters file to use.'
+        )
+    )
 
     # Initialize Arguments
     runtime_config_package = LaunchConfiguration("runtime_config_package")
@@ -104,6 +112,7 @@ def generate_launch_description():
     use_mock_hardware = LaunchConfiguration("use_mock_hardware")
     mock_sensor_commands = LaunchConfiguration("mock_sensor_commands")
     robot_controller = LaunchConfiguration("robot_controller")
+    parameter_file = LaunchConfiguration('ydlidar_params_file')
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -172,17 +181,6 @@ def generate_launch_description():
             )
         ]
 
-    inactive_robot_controller_names = ["add_some_controller_name"]
-    inactive_robot_controller_spawners = []
-    for controller in inactive_robot_controller_names:
-        inactive_robot_controller_spawners += [
-            Node(
-                package="controller_manager",
-                executable="spawner",
-                arguments=[controller, "-c", "/controller_manager", "--inactive"],
-            )
-        ]
-
     # Delay loading and activation of `joint_state_broadcaster` after start of ros2_control_node
     delay_joint_state_broadcaster_spawner_after_ros2_control_node = RegisterEventHandler(
         event_handler=OnProcessStart(
@@ -210,35 +208,7 @@ def generate_launch_description():
             )
         ]
 
-    # Delay start of inactive_robot_controller_names after other controllers
-    delay_inactive_robot_controller_spawners_after_joint_state_broadcaster_spawner = []
-    for i, controller in enumerate(inactive_robot_controller_spawners):
-        delay_inactive_robot_controller_spawners_after_joint_state_broadcaster_spawner += [
-            RegisterEventHandler(
-                event_handler=OnProcessExit(
-                    target_action=inactive_robot_controller_spawners[i - 1]
-                    if i > 0
-                    else robot_controller_spawners[-1],
-                    on_exit=[controller],
-                )
-            )
-        ]
-        
-    foxglove_bridge = IncludeLaunchDescription(
-        AnyLaunchDescriptionSource(
-            os.path.join(
-                get_package_share_directory('foxglove_bridge'),
-                'launch/foxglove_bridge_launch.xml'))
-    )
-
-    share_dir = get_package_share_directory('mw_description')
-    parameter_file = LaunchConfiguration('params_file')
-
-    params_declare = DeclareLaunchArgument('params_file',
-                                           default_value=os.path.join(
-                                               share_dir, 'config', 'ydlidar.yaml'),
-                                           description='FPath to the ROS2 parameters file to use.')
-    
+    # Hardware nodes
     lidar_node = LifecycleNode(
         package='ydlidar',
         executable='ydlidar_node',
@@ -252,7 +222,34 @@ def generate_launch_description():
     newt_node = Node(
         package="mw_bringup",
         executable="newt.py",
+        name='newt',
         output="both",
+    )
+
+    map_file = os.path.join(get_package_share_directory('mw_bringup'), 'mymap', 'mymap.yaml')
+    mapserver_node = Node(
+        package='nav2_map_server',
+        executable='map_server',
+        name='map_server',
+        output='screen',
+        parameters=[{'use_sim_time': False}, 
+                    {'yaml_filename':map_file}]
+    )
+    lifecycle_node = Node(
+        package='nav2_lifecycle_manager',
+        executable='lifecycle_manager',
+        name='lifecycle_manager_mapper',
+        output='screen',
+        parameters=[{'use_sim_time': False},
+                    {'autostart': True},
+                    {'node_names': ['map_server']}]  
+    )
+
+    foxglove_bridge = IncludeLaunchDescription(
+        AnyLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('foxglove_bridge'),
+                'launch/foxglove_bridge_launch.xml'))
     )
 
     return LaunchDescription(
@@ -260,12 +257,12 @@ def generate_launch_description():
         + [
             control_node,
             robot_state_pub_node,
-            params_declare,
             lidar_node,
             # rviz_node,
+            mapserver_node,
+            lifecycle_node,
             foxglove_bridge,
             delay_joint_state_broadcaster_spawner_after_ros2_control_node,
         ]
         + delay_robot_controller_spawners_after_joint_state_broadcaster_spawner
-        + delay_inactive_robot_controller_spawners_after_joint_state_broadcaster_spawner
     )
