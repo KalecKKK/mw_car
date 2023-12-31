@@ -8,18 +8,19 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 
+# Install Python script
+file(GLOB PYTHON_SCRIPTS scripts/*.py)
+install(
+  PROGRAMS ${PYTHON_SCRIPTS}
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 install(
   DIRECTORY config launch map
   DESTINATION share/${PROJECT_NAME}
-)
-
-# Install Python script
-install(PROGRAMS
-  scripts/newt.py
-  DESTINATION lib/${PROJECT_NAME}/scripts
 )
 
 if(BUILD_TESTING)
