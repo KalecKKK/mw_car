@@ -112,7 +112,7 @@ def generate_launch_description():
     use_mock_hardware = LaunchConfiguration("use_mock_hardware")
     mock_sensor_commands = LaunchConfiguration("mock_sensor_commands")
     robot_controller = LaunchConfiguration("robot_controller")
-    parameter_file = LaunchConfiguration('ydlidar_params_file')
+    ydlidar_params_file = LaunchConfiguration('ydlidar_params_file')
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -150,7 +150,7 @@ def generate_launch_description():
         output="both",
         parameters=[robot_description, robot_controllers],
     )
-    robot_state_pub_node = Node(
+    robot_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
@@ -215,7 +215,7 @@ def generate_launch_description():
         name='ydlidar_node',
         output='screen',
         emulate_tty=True,
-        parameters=[parameter_file],
+        parameters=[ydlidar_params_file],
         namespace='/',
     )
 
@@ -255,14 +255,15 @@ def generate_launch_description():
     return LaunchDescription(
         declared_arguments
         + [
-            control_node,
-            robot_state_pub_node,
-            lidar_node,
+            # control_node,
+            # robot_state_publisher_node,
+            # lidar_node,
+            newt_node,
             # rviz_node,
-            mapserver_node,
-            lifecycle_node,
-            foxglove_bridge,
-            delay_joint_state_broadcaster_spawner_after_ros2_control_node,
+            # mapserver_node,
+            # lifecycle_node,
+            # foxglove_bridge,
+            # delay_joint_state_broadcaster_spawner_after_ros2_control_node,
         ]
-        + delay_robot_controller_spawners_after_joint_state_broadcaster_spawner
+        # + delay_robot_controller_spawners_after_joint_state_broadcaster_spawner
     )

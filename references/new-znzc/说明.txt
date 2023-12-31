@@ -20,6 +20,3 @@
    roslaunch nav_demo nav02_map_save.launch
    rosrun car_bringup newt.py  发送速度给底盘
    通过多点导航程序发布目标点
-
-   
-

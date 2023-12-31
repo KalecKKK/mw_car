@@ -12,8 +12,14 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 install(
-  DIRECTORY config launch scripts
+  DIRECTORY config launch map
   DESTINATION share/${PROJECT_NAME}
+)
+
+# Install Python script
+install(PROGRAMS
+  scripts/newt.py
+  DESTINATION lib/${PROJECT_NAME}/scripts
 )
 
 if(BUILD_TESTING)
