@@ -1,9 +1,7 @@
-#!/usr/bin/env python
-#coding=utf-8
+#!/usr/bin/env python3
 
 import serial
-import roslib; roslib.load_manifest('mbot_bringup')
-import rospy
+import rclpy
 from geometry_msgs.msg import Twist
 import time
 
@@ -34,9 +32,9 @@ def callback(msg):
         x_2 = send_x_2
     x_2_1 = (x_2[:2])
     x_2_2 = (x_2[-2:])
-    x_2_1 = x_2_1.decode('hex')
-    x_2_2 = x_2_2.decode('hex')
-    print (x_2_1,x_2_2)
+    x_2_1 = bytes.fromhex(x_2_1)
+    x_2_2 = bytes.fromhex(x_2_2)
+    print(x_2_1, x_2_2)
     if int(y_1) < 0:
         y_2 = int(y_1) & 0xffff
         y_2 = str(hex(y_2))
@@ -57,9 +55,9 @@ def callback(msg):
         y_2 = send_y_2
     y_2_1 = (y_2[:2])
     y_2_2 = (y_2[-2:])
-    y_2_1 = y_2_1.decode('hex')
-    y_2_2 = y_2_2.decode('hex')
-    print (y_2_1,y_2_2)
+    y_2_1 = bytes.fromhex(y_2_1)
+    y_2_2 = bytes.fromhex(y_2_2)
+    print(y_2_1, y_2_2)
     if int(th_1) < 0:
         th_2 = int(th_1) & 0xffff
         th_2 = str(hex(th_2))
@@ -80,9 +78,9 @@ def callback(msg):
         th_2 = send_th_2
     th_2_1 = (th_2[:2])
     th_2_2 = (th_2[-2:])
-    th_2_1 = th_2_1.decode('hex')
-    th_2_2 = th_2_2.decode('hex')
-    print (th_2_1,th_2_2)
+    th_2_1 = bytes.fromhex(th_2_1)
+    th_2_2 = bytes.fromhex(th_2_2)
+    print(th_2_1, th_2_2)
     ser.write(b'\xAA')
     time.sleep(0.0004)
     ser.write(b'\xBB')
@@ -109,16 +107,25 @@ def callback(msg):
     time.sleep(0.0004)
 
 def listener():
-    rospy.init_node('cmd_vel_listener')
-    rospy.Subscriber("/cmd_vel", Twist, callback)
-    # rospy.Rate(10)
-    rospy.spin()
+    rclpy.init()
+    node = rclpy.create_node('cmd_vel_listener')
+    subscriber = node.create_subscription(Twist, '/cmd_vel', callback)
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == '__main__':
     print('serial')
-    ser = serial.Serial("/dev/carserial",115200,timeout = 5)
+    # 初始化串口
+    ser = serial.Serial("/dev/carserial", 115200, timeout=5)
     if ser.is_open:
         print('open_success')
+    
+    # 发送初始化命令
     ser.write(b'\x11')
     time.sleep(0.001)
     ser.write(b'\x00')
@@ -138,4 +145,5 @@ if __name__ == '__main__':
     ser.write(b'\x00')
     time.sleep(0.001)
     print('init_success')
+    
     listener()

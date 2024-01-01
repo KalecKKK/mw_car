@@ -258,10 +258,10 @@ def generate_launch_description():
             # control_node,
             # robot_state_publisher_node,
             # lidar_node,
-            newt_node,
+            # newt_node,
             # rviz_node,
-            # mapserver_node,
-            # lifecycle_node,
+            mapserver_node,
+            lifecycle_node,
             # foxglove_bridge,
             # delay_joint_state_broadcaster_spawner_after_ros2_control_node,
         ]
